@@ -4,7 +4,7 @@ import { UserProfile, FitnessPlan } from "../types";
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 export async function generateFitnessPlan(profile: UserProfile): Promise<FitnessPlan> {
-  const prompt = `Generate a highly personalized fitness routine and nutrition plan for the following profile:
+  const prompt = `Generate a highly personalized fitness routine and comprehensive nutrition plan for the following profile:
   - Age: ${profile.age}
   - Gender: ${profile.gender}
   - Weight: ${profile.weight}kg
@@ -14,7 +14,10 @@ export async function generateFitnessPlan(profile: UserProfile): Promise<Fitness
   - Available Equipment: ${profile.equipment.join(', ') || 'Bodyweight only'}
   - Commitment: ${profile.daysPerWeek} days per week, ${profile.sessionDuration} minutes per session.
 
-  Provide a structured plan including a weekly schedule, specific exercises with sets/reps/duration, and nutrition advice.`;
+  Provide a structured plan including:
+  1. A weekly schedule with specific exercises (sets, reps, muscle groups).
+  2. Detailed nutrition advice including caloric strategy, macronutrient focus, and specific food suggestions for the user's goal.
+  3. Pro tips for recovery and performance.`;
 
   const response = await ai.models.generateContent({
     model: "gemini-3.1-pro-preview",

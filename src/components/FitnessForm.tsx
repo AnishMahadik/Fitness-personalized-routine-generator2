@@ -38,8 +38,37 @@ export const FitnessForm: React.FC<FitnessFormProps> = ({ onSubmit, isLoading })
     onSubmit(formData);
   };
 
+  const bmi = (formData.weight / ((formData.height / 100) ** 2)).toFixed(1);
+  const getBmiCategory = (val: number) => {
+    if (val < 18.5) return { label: 'Underweight', color: 'text-blue-400' };
+    if (val < 25) return { label: 'Healthy', color: 'text-emerald-400' };
+    if (val < 30) return { label: 'Overweight', color: 'text-orange-400' };
+    return { label: 'Obese', color: 'text-red-400' };
+  };
+  const bmiInfo = getBmiCategory(parseFloat(bmi));
+
   return (
     <form onSubmit={handleSubmit} className="space-y-8 max-w-2xl mx-auto p-6">
+      {/* BMI Indicator */}
+      <div className="glass-card p-4 rounded-2xl flex items-center justify-between border-emerald-500/20 bg-emerald-500/5">
+        <div className="space-y-0.5">
+          <span className="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">Live BMI Calculator</span>
+          <div className="flex items-center gap-2">
+            <span className="text-2xl font-black font-display">{bmi}</span>
+            <span className={`text-xs font-bold px-2 py-0.5 rounded-full bg-black/20 ${bmiInfo.color}`}>
+              {bmiInfo.label}
+            </span>
+          </div>
+        </div>
+        <div className="w-12 h-12 rounded-full border-2 border-zinc-800 flex items-center justify-center relative">
+          <div 
+            className="absolute inset-0 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin-slow" 
+            style={{ clipPath: `inset(0 0 ${100 - (parseFloat(bmi) / 40 * 100)}% 0)` }}
+          />
+          <Target className="w-5 h-5 text-emerald-500" />
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Personal Details */}
         <div className="space-y-4">

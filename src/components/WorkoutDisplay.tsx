@@ -1,19 +1,44 @@
 import React from 'react';
 import { FitnessPlan, WorkoutDay, Exercise } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
-import { ChevronRight, ChevronDown, Info, Apple, Lightbulb, CheckCircle2 } from 'lucide-react';
+import { ChevronRight, ChevronDown, Info, Apple, Lightbulb, CheckCircle2, Calendar } from 'lucide-react';
 
 interface WorkoutDisplayProps {
   plan: FitnessPlan;
+  onSave?: () => void;
+  isSaving?: boolean;
+  isSaved?: boolean;
 }
 
-export const WorkoutDisplay: React.FC<WorkoutDisplayProps> = ({ plan }) => {
+export const WorkoutDisplay: React.FC<WorkoutDisplayProps> = ({ plan, onSave, isSaving, isSaved }) => {
   const [expandedDay, setExpandedDay] = React.useState<number | null>(0);
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-12">
       {/* Header */}
       <div className="text-center space-y-4">
+        <div className="flex justify-center mb-4">
+          {onSave && (
+            <button
+              onClick={onSave}
+              disabled={isSaving || isSaved}
+              className={`flex items-center gap-2 px-6 py-2 rounded-full text-sm font-bold transition-all ${
+                isSaved 
+                  ? 'bg-emerald-500/20 text-emerald-500 border border-emerald-500/30' 
+                  : 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-lg shadow-emerald-500/20'
+              }`}
+            >
+              {isSaving ? (
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : isSaved ? (
+                <CheckCircle2 className="w-4 h-4" />
+              ) : (
+                <Calendar className="w-4 h-4" />
+              )}
+              {isSaved ? 'Saved to History' : 'Save Plan'}
+            </button>
+          )}
+        </div>
         <h2 className="text-4xl md:text-5xl font-extrabold font-display gradient-text">{plan.planName}</h2>
         <p className="text-zinc-400 text-lg max-w-2xl mx-auto leading-relaxed">{plan.overview}</p>
       </div>

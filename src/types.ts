@@ -1,3 +1,15 @@
+export interface User {
+  id: number;
+  username: string;
+}
+
+export interface HistoryItem {
+  id: number;
+  user_id: number;
+  plan: FitnessPlan;
+  created_at: string;
+}
+
 export interface UserProfile {
   age: number;
   gender: string;
