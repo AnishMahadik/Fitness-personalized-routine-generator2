@@ -12,12 +12,17 @@ interface WorkoutDisplayProps {
 
 export const WorkoutDisplay: React.FC<WorkoutDisplayProps> = ({ plan, onSave, isSaving, isSaved }) => {
   const [expandedDay, setExpandedDay] = React.useState<number | null>(0);
+  const [viewMode, setViewMode] = React.useState<'list' | 'grid'>('list');
+
+  const handlePrint = () => {
+    window.print();
+  };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-12">
+    <div className="max-w-4xl mx-auto p-6 space-y-12 print:p-0">
       {/* Header */}
-      <div className="text-center space-y-4">
-        <div className="flex justify-center mb-4">
+      <div className="text-center space-y-4 print:hidden">
+        <div className="flex justify-center gap-3 mb-4">
           {onSave && (
             <button
               onClick={onSave}
@@ -35,75 +40,140 @@ export const WorkoutDisplay: React.FC<WorkoutDisplayProps> = ({ plan, onSave, is
               ) : (
                 <Calendar className="w-4 h-4" />
               )}
-              {isSaved ? 'Saved to History' : 'Save Plan'}
+              {isSaved ? 'Saved' : 'Save Plan'}
             </button>
           )}
+          <button
+            onClick={handlePrint}
+            className="flex items-center gap-2 px-6 py-2 bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white rounded-full text-sm font-bold transition-all"
+          >
+            <Info className="w-4 h-4" />
+            Print PDF
+          </button>
         </div>
         <h2 className="text-4xl md:text-5xl font-extrabold font-display gradient-text">{plan.planName}</h2>
         <p className="text-zinc-400 text-lg max-w-2xl mx-auto leading-relaxed">{plan.overview}</p>
       </div>
 
+      {/* Print-only Header */}
+      <div className="hidden print:block text-black space-y-4 mb-8">
+        <h1 className="text-3xl font-bold">{plan.planName}</h1>
+        <p className="text-gray-600">{plan.overview}</p>
+      </div>
+
       {/* Weekly Schedule */}
-      <div className="space-y-4">
-        <h3 className="text-xl font-bold font-display flex items-center gap-2">
-          <CheckCircle2 className="text-emerald-500 w-5 h-5" />
-          Weekly Training Schedule
-        </h3>
-        <div className="space-y-3">
-          {plan.weeklySchedule.map((day, idx) => (
-            <div key={idx} className="glass-card rounded-2xl overflow-hidden transition-all">
-              <button
-                onClick={() => setExpandedDay(expandedDay === idx ? null : idx)}
-                className="w-full flex items-center justify-between p-5 hover:bg-white/5 transition-colors"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500 font-bold text-sm">
+      <div className="space-y-6">
+        <div className="flex items-center justify-between print:hidden">
+          <h3 className="text-xl font-bold font-display flex items-center gap-2">
+            <CheckCircle2 className="text-emerald-500 w-5 h-5" />
+            Weekly Training Schedule
+          </h3>
+          <div className="flex bg-zinc-900 p-1 rounded-lg border border-zinc-800">
+            <button
+              onClick={() => setViewMode('list')}
+              className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${viewMode === 'list' ? 'bg-emerald-500 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+            >
+              List
+            </button>
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${viewMode === 'grid' ? 'bg-emerald-500 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+            >
+              Grid
+            </button>
+          </div>
+        </div>
+
+        {viewMode === 'list' ? (
+          <div className="space-y-3 print:space-y-6">
+            {plan.weeklySchedule.map((day, idx) => (
+              <div key={idx} className="glass-card rounded-2xl overflow-hidden transition-all print:border-gray-200 print:bg-white print:text-black">
+                <button
+                  onClick={() => setExpandedDay(expandedDay === idx ? null : idx)}
+                  className="w-full flex items-center justify-between p-5 hover:bg-white/5 transition-colors print:hover:bg-transparent print:p-2"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500 font-bold text-sm print:bg-gray-100 print:text-black">
+                      {day.day.substring(0, 3)}
+                    </div>
+                    <div className="text-left">
+                      <h4 className="font-bold text-lg">{day.day}</h4>
+                      <p className="text-zinc-500 text-sm print:text-gray-500">{day.focus}</p>
+                    </div>
+                  </div>
+                  <div className="print:hidden">
+                    {expandedDay === idx ? <ChevronDown className="w-5 h-5 text-zinc-500" /> : <ChevronRight className="w-5 h-5 text-zinc-500" />}
+                  </div>
+                </button>
+
+                <AnimatePresence initial={false}>
+                  {(expandedDay === idx || window.matchMedia('print').matches) && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="overflow-hidden print:!h-auto print:!opacity-100"
+                    >
+                      <div className="p-5 pt-0 space-y-4 print:p-2">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 print:grid-cols-1">
+                          {day.exercises.map((ex, exIdx) => (
+                            <div key={exIdx} className="bg-zinc-900/50 border border-zinc-800/50 p-4 rounded-xl space-y-2 print:bg-white print:border-gray-200">
+                              <div className="flex justify-between items-start">
+                                <h5 className="font-bold text-emerald-400 print:text-black">{ex.name}</h5>
+                                <span className="text-[10px] uppercase tracking-widest bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded print:border print:border-gray-300 print:text-gray-600">
+                                  {ex.targetMuscle}
+                                </span>
+                              </div>
+                              <div className="flex gap-4 text-xs text-zinc-400 font-mono print:text-gray-600">
+                                {ex.sets && <span>{ex.sets} Sets</span>}
+                                {ex.reps && <span>{ex.reps} Reps</span>}
+                                {ex.duration && <span>{ex.duration}</span>}
+                              </div>
+                              <p className="text-xs text-zinc-500 leading-relaxed italic print:text-gray-500">
+                                {ex.instructions}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {plan.weeklySchedule.map((day, idx) => (
+              <div key={idx} className="glass-card p-5 rounded-2xl space-y-4 border-emerald-500/10 hover:border-emerald-500/30 transition-all">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500 font-bold text-xs">
                     {day.day.substring(0, 3)}
                   </div>
-                  <div className="text-left">
-                    <h4 className="font-bold text-lg">{day.day}</h4>
-                    <p className="text-zinc-500 text-sm">{day.focus}</p>
-                  </div>
+                  <h4 className="font-bold">{day.day}</h4>
                 </div>
-                {expandedDay === idx ? <ChevronDown className="w-5 h-5 text-zinc-500" /> : <ChevronRight className="w-5 h-5 text-zinc-500" />}
-              </button>
-
-              <AnimatePresence>
-                {expandedDay === idx && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    className="overflow-hidden"
-                  >
-                    <div className="p-5 pt-0 space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {day.exercises.map((ex, exIdx) => (
-                          <div key={exIdx} className="bg-zinc-900/50 border border-zinc-800/50 p-4 rounded-xl space-y-2">
-                            <div className="flex justify-between items-start">
-                              <h5 className="font-bold text-emerald-400">{ex.name}</h5>
-                              <span className="text-[10px] uppercase tracking-widest bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded">
-                                {ex.targetMuscle}
-                              </span>
-                            </div>
-                            <div className="flex gap-4 text-xs text-zinc-400 font-mono">
-                              {ex.sets && <span>{ex.sets} Sets</span>}
-                              {ex.reps && <span>{ex.reps} Reps</span>}
-                              {ex.duration && <span>{ex.duration}</span>}
-                            </div>
-                            <p className="text-xs text-zinc-500 leading-relaxed italic">
-                              {ex.instructions}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
+                <p className="text-xs text-emerald-500 font-medium uppercase tracking-wider">{day.focus}</p>
+                <div className="space-y-2">
+                  {day.exercises.slice(0, 4).map((ex, i) => (
+                    <div key={i} className="text-xs text-zinc-400 flex items-center gap-2">
+                      <div className="w-1 h-1 rounded-full bg-zinc-700" />
+                      <span className="truncate">{ex.name}</span>
                     </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          ))}
-        </div>
+                  ))}
+                  {day.exercises.length > 4 && (
+                    <p className="text-[10px] text-zinc-600">+{day.exercises.length - 4} more exercises</p>
+                  )}
+                </div>
+                <button 
+                  onClick={() => { setViewMode('list'); setExpandedDay(idx); }}
+                  className="w-full py-2 bg-zinc-900 rounded-lg text-[10px] uppercase font-bold tracking-widest text-zinc-500 hover:text-white transition-colors"
+                >
+                  View Details
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Nutrition & Tips */}
