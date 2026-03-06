@@ -90,7 +90,7 @@ export default function App() {
             </div>
             <div className="flex flex-col">
               <span className="font-display font-bold text-xl tracking-tight leading-none">FitGen</span>
-              <span className="text-[10px] text-emerald-500/60 font-mono font-medium">v1.2.4</span>
+              <span className="text-[10px] text-emerald-500/60 font-mono font-medium">v4.1.1</span>
             </div>
           </div>
           
